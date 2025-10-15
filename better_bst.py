@@ -14,11 +14,26 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
             in the (inclusive) range of [low, high].
             Return the result in either an ArrayR or an ArrayList.
             Complexity Analysis:
-            ...
+            Let N be the number of nodes, h the tree height, and k the number of returned items.
+            Best: O(h) by pruning off-range subtrees via the BST property (e.g., all keys < low or > high).
+            Worst: O(N) when the range covers all keys so every node is visited (and k = N).     
         """
-        pass
-        
+        out: ArrayList[V] = ArrayList()
+        self._range_query_aux(self._BinarySearchTree__root, low, high, out)
+        return out
 
+    def _range_query_aux(self, node, low: K, high: K, out: ArrayList[V]) -> None:
+        if node is None:
+            return
+        if node.key > high:
+            self._range_query_aux(node.left, low, high, out)
+        elif node.key < low:
+            self._range_query_aux(node.right, low, high, out)
+        else:
+            self._range_query_aux(node.left, low, high, out)
+            out.append(node.item)
+            self._range_query_aux(node.right, low, high, out)
+        
     def balance_score(self):
         """
             Returns the balance score of the BST, which we define as the
