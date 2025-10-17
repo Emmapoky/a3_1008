@@ -4,7 +4,8 @@ from functools import total_ordering
 import math
 
 from typing import Union
-from data_structures import ArrayList, ArrayR
+from data_structures.array_list import ArrayList
+from data_structures.referential_array import ArrayR
 from data_structures.binary_search_tree import BinarySearchTree, K, V
 
 class BetterBinarySearchTree(BinarySearchTree[K, V]):
@@ -43,7 +44,36 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
             ...
         """
         pass
-        
+    def balance_score(self) -> int:
+        """
+        Returns the balance score of the BST, which we define as the
+        difference between the ideal (balanced) height of the tree (achievable with a complete tree),
+        and the actual height of the tree.
+           
+        Return balance score = actual_height - ideal_height, where height(empty) = -1.
+
+        Ideal height: the height of a complete binary tree with the same number of nodes,
+        given by ideal = ceil(log2(n + 1)) - 1 for n >= 1, and -1 when n = 0.
+
+        Complexity analysis:
+        Count and height are each computed once by recursion: time O(N), extra space O(h).
+        """
+        n = self._count_nodes(self._BinarySearchTree__root)
+        actual = self._height(self._BinarySearchTree__root)
+        ideal = -1 if n == 0 else math.ceil(math.log2(n + 1)) - 1
+        return actual - ideal
+
+    def _count_nodes(self, node) -> int:
+        if node is None:
+            return 0
+        return 1 + self._count_nodes(node.left) + self._count_nodes(node.right)
+
+    def _height(self, node) -> int:
+        if node is None:
+            return -1
+        lh = self._height(node.left)
+        rh = self._height(node.right)
+        return 1 + (lh if lh >= rh else rh)
     
     def rebalance(self):
         """
@@ -56,7 +86,6 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         """
         pass
         
-
 if __name__ == "__main__":
     # Test your code here.
     
