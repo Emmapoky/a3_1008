@@ -3,7 +3,7 @@
 from functools import total_ordering
 import math
 
-from typing import Union
+from typing import Union, Tuple
 from data_structures.array_list import ArrayList
 from data_structures.referential_array import ArrayR
 from data_structures.binary_search_tree import BinarySearchTree, K, V
@@ -11,9 +11,9 @@ from data_structures.binary_search_tree import BinarySearchTree, K, V
 class BetterBinarySearchTree(BinarySearchTree[K, V]):
     def range_query(self, low: K, high: K) -> Union[ArrayR[V], ArrayList[V]]:
         """
-            Return all items from the BST with keys,
-            in the (inclusive) range of [low, high].
+            Return all items from the BST with keys, in the (inclusive) range of [low, high].
             Return the result in either an ArrayR or an ArrayList.
+            
             Complexity Analysis:
             Let N be the number of nodes, h the tree height, and k the number of returned items.
             Best: O(h) by pruning off-range subtrees via the BST property (e.g., all keys < low or > high).
@@ -75,16 +75,38 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         rh = self._height(node.right)
         return 1 + (lh if lh >= rh else rh)
     
-    def rebalance(self):
+    def rebalance(self) -> None:
         """
-            Restructure the BST such that it is balanced.
-            
-            Do *not* return a new instance; rather, this method
-            should modify the tree it is called on.
-            Complexity Analysis:
-            ...
+        Rebuild the current tree into a balanced BST in place.
+
+        Method: recursively collect the in-order (key, value) sequence, clear the root,
+        then recursively insert midpoints first (divide-and-conquer) to create a balanced shape.
+
+        Complexity analysis:
+        O(N) to collect in-order; O(N log N) to rebuild via the BST’s recursive insertion,
+        with recursion depth O(h) during collect and O(log N) during rebuild on a balanced shape.
         """
-        pass
+        sorted_pairs: ArrayList[Tuple[K, V]] = ArrayList()
+        self._collect_inorder(self._BinarySearchTree__root, sorted_pairs)
+        self._BinarySearchTree__root = None
+        self._rebuild_from_sorted(sorted_pairs, 0, len(sorted_pairs) - 1)
+
+    def _collect_inorder(self, node, out: ArrayList[Tuple[K, V]]) -> None:
+        if node is None:
+            return
+        self._collect_inorder(node.left, out)
+        out.append((node.key, node.item))
+        self._collect_inorder(node.right, out)
+
+    def _rebuild_from_sorted(self, arr: ArrayList[Tuple[K, V]], lo: int, hi: int) -> None:
+        if lo > hi:
+            return
+        mid = (lo + hi) // 2
+        k, v = arr[mid]
+        # Use the BST’s recursive insertion; do not construct nodes directly to KEEP within the scaffold
+        self[k] = v
+        self._rebuild_from_sorted(arr, lo, mid - 1)
+        self._rebuild_from_sorted(arr, mid + 1, hi)
         
 if __name__ == "__main__":
     # Test your code here.
