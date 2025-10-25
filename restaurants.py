@@ -6,25 +6,35 @@ import math
 from typing import Iterator
 from data_structures import ArrayR
 
+# @total_ordering fills in the other comparison methods (<=, >=, >, !=) from the two we define here, 
+# so I can write less code and all comparisons stay consistent.​
+# This means if anything later uses <=, >=, >, or != on MenuItem (including tests), it will work w/o extra methods.​
+
+@total_ordering
 class MenuItem:
-    def __init__(self, name: str, rating: float):
+    def __init__(self, name: str, rating: int) -> None:
         """
-            Constructor for Restaurant.
-            No analysis required.
+            Constructor for MenuItem.
         """
         self.name = name
         self.rating = rating
-        
-        
-    def __str__(self):
-        """
-            String representation method for MenuItem class.
-            Implementation optional - perhaps useful for debugging.
-            No analysis required.
-        """
-        return f"MenuItem <???>"
-        
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, MenuItem):
+            return False
+        return self.rating == other.rating and self.name == other.name
+
+    def __lt__(self, other: "MenuItem") -> bool:
+        """
+            Less-than comparison for MenuItem.
+        """
+        if self.rating != other.rating:
+            return self.rating > other.rating   # higher rating should come earlier
+        return self.name < other.name          # tie-break (smaller first)
+
+    def __str__(self) -> str:
+        # human readable printout for debugging without affecting ordering or complexity
+        return f"{self.name} ({self.rating}★)"
 
 class Restaurant:
     def __init__(self, name: str, block_number: int, initial_menu: ArrayR[MenuItem]):
