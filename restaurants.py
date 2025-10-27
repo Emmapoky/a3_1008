@@ -43,14 +43,35 @@ class Restaurant:
         for index in range(len(sorted_initial)):
             self._menu.append(sorted_initial[index])
     
-    def __str__(self):
+    def __str__(self) -> str:
+        return f"Restaurant(name={self.name}, block={self.block})"
+
+    def _merge_sorted_inplace(self, extra_sorted: ArrayList[MenuItem]) -> None:
         """
-            String representation method for Restaurant class.
-            Implementation optional - perhaps useful for debugging.
-            No analysis required.
+        Merge another already-sorted-by-our-order list into self._menu via scaffold 'merge'.
+
+        Complexity:
+        Let n be the current menu length and m be the number of items in extra_sorted.
+        Best and worst: O(n + m).
+        Reason: both inputs are already sorted by the same rule, so the scaffold merge function walks each list once and builds the result in linear time. 
         """
-        return f"Restaurant <???>"
-        
+        merged_view = merge(self._menu, extra_sorted, key=lambda item: (-item.rating, item.name))
+
+        # This keep ArrayList INTERNAL 
+        new_menu: ArrayList[MenuItem] = ArrayList()
+        for index in range(len(merged_view)):
+            new_menu.append(merged_view[index])
+        self._menu = new_menu
+
+    def get_menu_ref(self) -> ArrayList[MenuItem]:
+        """
+        Return the internal, already-sorted menu by reference.
+
+        Complexity:
+        Best and worst: O(1).
+        Reason: returns a reference to the stored menu without copying. 
+        """
+        return self._menu
 
 class FoodFlight:
     def __init__(self):
