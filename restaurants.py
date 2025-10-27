@@ -3,19 +3,16 @@
 from functools import total_ordering
 import math
 
-from typing import Iterator
-from data_structures import ArrayR
+from typing import Iterator, Optional, Union
+from data_structures.array_list import ArrayList
+from data_structures.referential_array import ArrayR
+from data_structures.binary_search_tree import BinarySearchTree, K, V
+from data_structures.hash_table_separate_chaining import HashTableSeparateChaining
+from better_bst import BetterBinarySearchTree
+from algorithms import mergesort, merge
 
-# @total_ordering fills in the other comparison methods (<=, >=, >, !=) from the two we define here, 
-# so I can write less code and all comparisons stay consistent.​
-# This means if anything later uses <=, >=, >, or != on MenuItem (including tests), it will work w/o extra methods.​
-
-@total_ordering
 class MenuItem:
     def __init__(self, name: str, rating: int) -> None:
-        """
-            Constructor for MenuItem.
-        """
         self.name = name
         self.rating = rating
 
@@ -25,27 +22,26 @@ class MenuItem:
         return self.rating == other.rating and self.name == other.name
 
     def __lt__(self, other: "MenuItem") -> bool:
-        """
-            Less-than comparison for MenuItem.
-        """
         if self.rating != other.rating:
-            return self.rating > other.rating   # higher rating should come earlier
-        return self.name < other.name          # tie-break (smaller first)
+            return self.rating > other.rating
+        return self.name < other.name
 
     def __str__(self) -> str:
-        # human readable printout for debugging without affecting ordering or complexity
-        return f"{self.name} ({self.rating}★)"
+        return f"{self.name} ({self.rating})"
 
 class Restaurant:
-    def __init__(self, name: str, block_number: int, initial_menu: ArrayR[MenuItem]):
+    def __init__(self, name: str, block: int, initial_menu: ArrayR[MenuItem]) -> None:
         """
-            Constructor for Restaurant.
-            Complexity Analysis:
-            ...
+        Complexity:
+        Let n be the number of items in initial_menu.
+        Best and worst: O(n log n) due to mergesort.
         """
         self.name = name
-        self.block_number = block_number
-    
+        self.block = block
+        sorted_initial = mergesort(initial_menu, key=lambda item: (-item.rating, item.name))
+        self._menu: ArrayList[MenuItem] = ArrayList()
+        for index in range(len(sorted_initial)):
+            self._menu.append(sorted_initial[index])
     
     def __str__(self):
         """
