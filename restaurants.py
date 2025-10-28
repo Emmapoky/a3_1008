@@ -74,41 +74,35 @@ class Restaurant:
         return self._menu
 
 class FoodFlight:
-    def __init__(self):
-        """
-            Constructor for FoodFlight.
-            Complexity Analysis:
-            ...
-        """
-        pass
-        
-    
-    def add_restaurant(self, restaurant: Restaurant):
-        """
-            Register a `restaurant` in the FoodFlight app.
-            Complexity Analysis:
-            ...
-        """
-        pass
-        
-    
-    def get_menu(self, restaurant_name: str):
-        """
-            Return all menu items for a restaurant in decreasing order of their ratings.
-            Complexity Analysis:
-            ...
-        """
-        pass
-        
+    def __init__(self) -> None:
+        self._name_index = HashTableSeparateChaining()
+        self._block_index = BetterBinarySearchTree[int, Restaurant]()
 
-    def add_to_menu(self, restaurant_name: str, new_items: ArrayR[MenuItem]):
-        """
-            Add an ArrayR of MenuItems to a Restaurant's menu.
-            Complexity Analysis:
-            ...
-        """
-        pass
-    
+    def add_restaurant(self, restaurant: Restaurant) -> None:
+        self._name_index[restaurant.name] = restaurant
+        self._block_index[restaurant.block] = restaurant
+
+    def get_menu(self, restaurant_name: str) -> Union[ArrayR[MenuItem], ArrayList[MenuItem]]:
+        if restaurant_name not in self._name_index:
+            raise KeyError("Restaurant not found")
+        return self._name_index[restaurant_name].get_menu_ref()
+
+    def add_to_menu(self, restaurant_name: str, new_items: ArrayR[MenuItem]) -> None:
+        if restaurant_name not in self._name_index:
+            raise KeyError("Restaurant not found")
+        restaurant_ref = self._name_index[restaurant_name]
+
+        buffer_new: ArrayList[MenuItem] = ArrayList()
+        for index in range(len(new_items)):
+            buffer_new.append(new_items[index])
+
+        sorted_new_view = mergesort(buffer_new, key=lambda item: (-item.rating, item.name))
+
+        sorted_new_list: ArrayList[MenuItem] = ArrayList()
+        for index in range(len(sorted_new_view)):
+            sorted_new_list.append(sorted_new_view[index])
+
+        restaurant_ref._merge_sorted_inplace(sorted_new_list)
     
     def meal_suggestions(self, user_block_number: int, max_walk: int) -> Iterator[MenuItem]:
         """
