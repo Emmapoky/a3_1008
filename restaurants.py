@@ -104,14 +104,49 @@ class FoodFlight:
 
         restaurant_ref._merge_sorted_inplace(sorted_new_list)
     
-    def meal_suggestions(self, user_block_number: int, max_walk: int) -> Iterator[MenuItem]:
+    def meal_suggestions(self, my_block: int, max_walk: int) -> Iterator[MenuItem]:
         """
-            Yield all menu items within max_walk blocks of the user's current block.
-            Complexity Analysis (across all __next__ calls):
-            ...
+        Complexity:
+        Let R' be in-range restaurants, n' be total items among them.
+        Best and worst: O(n' · R') across all yields.
         """
-        pass
+        low_block = my_block - max_walk
+        high_block = my_block + max_walk
+        in_range_restaurants: ArrayList[Restaurant] = self._block_index.range_query(low_block, high_block)
 
+        menus_in_range: ArrayList[ArrayList[MenuItem]] = ArrayList()
+        for restaurant_index in range(len(in_range_restaurants)):
+            menus_in_range.append(in_range_restaurants[restaurant_index].get_menu_ref())
+
+        cursors_by_menu: ArrayList[int] = ArrayList()
+        for _ in range(len(menus_in_range)):
+            cursors_by_menu.append(0)
+
+        class SuggestIter:
+            def __init__(self, menus_ref: ArrayList[ArrayList[MenuItem]], cursors_ref: ArrayList[int]) -> None:
+                self._menus = menus_ref
+                self._cursors = cursors_ref
+
+            def __iter__(self) -> "SuggestIter":
+                return self
+
+            def __next__(self) -> MenuItem:
+                best_menu_index = -1
+                best_candidate: Optional[MenuItem] = None
+                for menu_index in range(len(self._menus)):
+                    cursor_position = self._cursors[menu_index]
+                    menu_ref = self._menus[menu_index]
+                    if cursor_position < len(menu_ref):
+                        candidate_item = menu_ref[cursor_position]
+                        if best_candidate is None or candidate_item < best_candidate:
+                            best_candidate = candidate_item
+                            best_menu_index = menu_index
+                if best_menu_index == -1:
+                    raise StopIteration
+                self._cursors[best_menu_index] = self._cursors[best_menu_index] + 1
+                return best_candidate  # type: ignore
+
+        return SuggestIter(menus_in_range, cursors_by_menu)
 
 if __name__ == "__main__":
     # Test your code here
