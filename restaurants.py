@@ -13,6 +13,12 @@ from algorithms import mergesort, merge
 
 class MenuItem:
     def __init__(self, name: str, rating: int) -> None:
+        """
+        An immutable menu item with a name and a star rating in [1..10].
+
+        Complexity:
+        Best and worst: O(1). Stores two fields and returns.
+        """
         self.name = name
         self.rating = rating
 
@@ -22,6 +28,12 @@ class MenuItem:
         return self.rating == other.rating and self.name == other.name
 
     def __lt__(self, other: "MenuItem") -> bool:
+        """
+        Define order as: higher rating first, then lexicographic name ascending for ties.
+
+        Complexity:
+        Best and worst: O(1).
+        """
         if self.rating != other.rating:
             return self.rating > other.rating
         return self.name < other.name
@@ -32,9 +44,11 @@ class MenuItem:
 class Restaurant:
     def __init__(self, name: str, block: int, initial_menu: ArrayR[MenuItem]) -> None:
         """
+        Build a Restaurant with a sorted menu (best-first by rating, then name asc).
+
         Complexity:
         Let n be the number of items in initial_menu.
-        Best and worst: O(n log n) due to mergesort.
+        Best and worst: O(n log n) due to mergesort. Copy into ArrayList is O(n).
         """
         self.name = name
         self.block = block
@@ -53,7 +67,6 @@ class Restaurant:
         Complexity:
         Let n be the current menu length and m be the number of items in extra_sorted.
         Best and worst: O(n + m).
-        Reason: both inputs are already sorted by the same rule, so the scaffold merge function walks each list once and builds the result in linear time. 
         """
         merged_view = merge(self._menu, extra_sorted, key=lambda item: (-item.rating, item.name))
 
@@ -69,25 +82,53 @@ class Restaurant:
 
         Complexity:
         Best and worst: O(1).
-        Reason: returns a reference to the stored menu without copying. 
         """
         return self._menu
 
 class FoodFlight:
     def __init__(self) -> None:
+        """
+        Indices:
+        - name_index: HashTableSeparateChaining[str -> Restaurant] for O(len(name)) lookups,
+        - block_index: BetterBinarySearchTree[int -> Restaurant] for block-based range queries.
+
+        Complexity:
+        Best and worst: O(1).
+        """
         self._name_index = HashTableSeparateChaining()
         self._block_index = BetterBinarySearchTree[int, Restaurant]()
 
     def add_restaurant(self, restaurant: Restaurant) -> None:
+        """
+        Register a restaurant once, indexed by both name and block.
+
+        Complexity:
+        Let R be the number of restaurants already stored and L be the length of restaurant.name.
+        Best and worst: O(log R + L).
+        """
         self._name_index[restaurant.name] = restaurant
         self._block_index[restaurant.block] = restaurant
 
     def get_menu(self, restaurant_name: str) -> Union[ArrayR[MenuItem], ArrayList[MenuItem]]:
+        """
+        Return the menu in rating-desc then name-asc order; raise if the name is unknown.
+
+        Complexity:
+        Let L be the length of restaurant_name.
+        Best and worst: O(L) to hash name; O(1) to return the stored reference.
+        """
         if restaurant_name not in self._name_index:
             raise KeyError("Restaurant not found")
         return self._name_index[restaurant_name].get_menu_ref()
 
     def add_to_menu(self, restaurant_name: str, new_items: ArrayR[MenuItem]) -> None:
+        """
+        Add a batch of new items, preserving the ordering rule.
+
+        Complexity:
+        Let L be the length of restaurant_name, n be current menu length, and m be the number of new items.
+        Best and worst: O(L + m log m + n + m).
+        """
         if restaurant_name not in self._name_index:
             raise KeyError("Restaurant not found")
         restaurant_ref = self._name_index[restaurant_name]
@@ -106,9 +147,12 @@ class FoodFlight:
     
     def meal_suggestions(self, my_block: int, max_walk: int) -> Iterator[MenuItem]:
         """
+        Yield the best MenuItems from all restaurants with blocks in [my_block - max_walk, my_block + max_walk],
+        ordered by rating-desc then name-asc (tie-break).
+
         Complexity:
-        Let R' be in-range restaurants, n' be total items among them.
-        Best and worst: O(n' · R') across all yields.
+        Let R' be the number of restaurants in range and n' be the total number of their menu items.
+        Best and worst (across all items yielded): O(n' · R').
         """
         low_block = my_block - max_walk
         high_block = my_block + max_walk
