@@ -30,6 +30,20 @@ class OrderDispatch:
         self._capacity = max_orders
         self._pending: ArrayMaxHeap[tuple[float, int, Order]] = ArrayMaxHeap(max_orders)
         self._tie_counter = 0
+
+    def _distance_from_dispatch(self, point: Tuple[float, float]) -> float:
+        return math.hypot(point[0] - self._dispatch[0], point[1] - self._dispatch[1])
+    
+    def _foodfast(self, distance_value: float, hunger_value: int) -> float:
+        return 4.0 * distance_value - 5.0 * hunger_value
+
+    def receive_order(self, order: Order) -> None:
+        if len(self._pending) == self._capacity:
+            raise Exception("Dispatch at capacity")
+        order.distance = self._distance_from_dispatch(order.location)
+        score = self._foodfast(order.distance, order.hunger)
+        self._pending.add((-score, self._tie_counter, order))
+        self._tie_counter += 1
     
     def __len__(self) -> int:
         """
@@ -40,24 +54,11 @@ class OrderDispatch:
         """
         return len(self._pending)
     
-    def receive_order(self, order: Order):
-        """
-            Receive a new Food Flight order into the dispatch system.
-            Complexity Analysis:
-            ...
-        """
-        pass
-        
-    
     def deliver_single(self) -> Order:
-        """
-            Deliver a single pending order with the lowest
-            FoodFast (TM) score.
-            See specifications for details.
-            Complexity Analysis:
-            ...
-        """
-        pass
+        if len(self._pending) == 0:
+            raise Exception("No pending orders")
+        _, _, next_order = self._pending.extract_root()
+        return next_order
         
     
     def deliver_multiple(self, max_travel: float) -> List[Order]:
@@ -69,17 +70,6 @@ class OrderDispatch:
             ...
         """
         pass
-        
-
-    def order_surge_1054(self, surge_batch: ArrayR[Order]):
-        """
-            Add all orders from surge batch, ensuring this is done as
-            efficiently as possible to minimise downtime.
-            Complexity Analysis:
-            ...
-        """
-        pass
-
 
 if __name__ == "__main__":
     # Test your code here
