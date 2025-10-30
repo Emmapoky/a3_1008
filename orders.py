@@ -3,40 +3,42 @@
 from functools import total_ordering
 import math
 
-from data_structures import List, ArrayR
+from typing import Tuple, Optional
+
+from data_structures.array_max_heap import ArrayMaxHeap
+from data_structures.array_list import ArrayList
+from data_structures.referential_array import ArrayR
 
 class Order:
-    def __init__(self, hunger: int, location: tuple[float, float]):
-        """
-            Constructor for Order.
-            No analysis required.
-        """
+    def __init__(self, hunger: int, location: Tuple[float, float]) -> None:
         self.hunger = hunger
         self.location = location
-        self.distance = None
-        
-        
-    def __str__(self):
-        return "Order <???>"
-    
+        self.distance: Optional[float] = None #added float
+
+    def __str__(self) -> str:
+        readable_distance = "?" if self.distance is None else f"{self.distance:.3f}"
+        return f"Order(h={self.hunger}, loc={self.location}, d={readable_distance})"
     
 class OrderDispatch:
-    def __init__(self, dispatch_location: tuple[float, float], max_orders: int):
+    def __init__(self, dispatch_location: Tuple[float, float], max_orders: int) -> None:
         """
             Constructor for OrderDispatch.
             Complexity Analysis:
             ...
         """
-        pass
+        self._dispatch = dispatch_location
+        self._capacity = max_orders
+        self._pending: ArrayMaxHeap[tuple[float, int, Order]] = ArrayMaxHeap(max_orders)
+        self._tie_counter = 0
     
-    
-    def __len__(self):
+    def __len__(self) -> int:
         """
-            Return the number of pending orders in the dispatch system.
-            No analysis required.
+        Number of orders currently waiting.
+
+        Complexity:
+        Best and worst: O(1). Heap stores its length.
         """
-        pass
-        
+        return len(self._pending)
     
     def receive_order(self, order: Order):
         """
