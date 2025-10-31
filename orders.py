@@ -11,6 +11,12 @@ from data_structures.referential_array import ArrayR
 
 class Order:
     def __init__(self, hunger: int, location: Tuple[float, float]) -> None:
+        """
+        An order with a hunger score and a location. The dispatch sets distance on receipt.
+
+        Complexity:
+        Best and worst: O(1). Stores fields and returns.
+        """
         self.hunger = hunger
         self.location = location
         self.distance: Optional[float] = None #added float
@@ -22,9 +28,10 @@ class Order:
 class OrderDispatch:
     def __init__(self, dispatch_location: Tuple[float, float], max_orders: int) -> None:
         """
-            Constructor for OrderDispatch.
-            Complexity Analysis:
-            ...
+        Construct a dispatch with a location and a capacity on how many orders can be queued.
+
+        Complexity:
+        Best and worst: O(1). Allocates the heap structure and stores a few fields.
         """
         self._dispatch = dispatch_location
         self._capacity = max_orders
@@ -32,12 +39,31 @@ class OrderDispatch:
         self._tie_counter = 0
 
     def _distance_from_dispatch(self, point: Tuple[float, float]) -> float:
+        """
+        Euclidean distance between the dispatch and a given point.
+
+        Complexity:
+        Best and worst: O(1). Computes one hypot.
+        """
         return math.hypot(point[0] - self._dispatch[0], point[1] - self._dispatch[1])
     
     def _foodfast(self, distance_value: float, hunger_value: int) -> float:
+        """
+        FoodFast score is 4*distance - 5*hunger. Smaller scores have higher priority.
+
+        Complexity:
+        Best and worst: O(1).
+        """
         return 4.0 * distance_value - 5.0 * hunger_value
 
     def receive_order(self, order: Order) -> None:
+        """
+        Receive an Order, set its distance from this dispatch, and enqueue by FoodFast priority.
+
+        Complexity:
+        Let N be the number of orders currently waiting.
+        Best and worst: O(log N).
+        """
         if len(self._pending) == self._capacity:
             raise Exception("Dispatch at capacity")
         order.distance = self._distance_from_dispatch(order.location)
@@ -50,11 +76,18 @@ class OrderDispatch:
         Number of orders currently waiting.
 
         Complexity:
-        Best and worst: O(1). Heap stores its length.
+        Best and worst: O(1).
         """
         return len(self._pending)
     
     def deliver_single(self) -> Order:
+        """
+        Remove and return the next order by increasing FoodFast (smallest score first).
+
+        Complexity:
+        Let N be the number of orders currently waiting.
+        Best and worst: O(log N).
+        """
         if len(self._pending) == 0:
             raise Exception("No pending orders")
         _, _, next_order = self._pending.extract_root()
@@ -65,6 +98,10 @@ class OrderDispatch:
         """
         Plan one trip: deliver as many orders as possible in increasing FoodFast order,
         while always being able to return to the dispatch within max_travel.
+
+        Complexity:
+        Let N be the current number of waiting orders and k be how many are accepted in this run.
+        Best and worst: O(k log N).
         """
         delivered: ArrayList[Order] = ArrayList()
         if len(self._pending) == 0:
