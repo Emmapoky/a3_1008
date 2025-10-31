@@ -61,15 +61,37 @@ class OrderDispatch:
         return next_order
         
     
-    def deliver_multiple(self, max_travel: float) -> List[Order]:
+    def deliver_multiple(self, max_travel: float) -> ArrayList[Order]:
         """
-            Deliver as many orders, prioritising orders such that
-            lower FoodFast (TM) scores are delivered first.
-            See specifications for details.
-            Complexity Analysis:
-            ...
+        Plan one trip: deliver as many orders as possible in increasing FoodFast order,
+        while always being able to return to the dispatch within max_travel.
         """
-        pass
+        delivered: ArrayList[Order] = ArrayList()
+        if len(self._pending) == 0:
+            return delivered
+
+        _, _, first_best = self._pending.peek()
+        if 2.0 * float(first_best.distance) > max_travel:
+            return delivered
+
+        current_position = self._dispatch
+        path_without_return = 0.0
+
+        while len(self._pending) > 0:
+            _, _, candidate = self._pending.peek()
+            leg_to_candidate = math.hypot(candidate.location[0] - current_position[0],
+                                          candidate.location[1] - current_position[1])
+            trip_if_taken = path_without_return + leg_to_candidate + self._distance_from_dispatch(candidate.location)
+
+            if trip_if_taken <= max_travel:
+                self._pending.extract_root()
+                delivered.append(candidate)
+                path_without_return += leg_to_candidate
+                current_position = candidate.location
+            else:
+                break
+
+        return delivered
 
 if __name__ == "__main__":
     # Test your code here
