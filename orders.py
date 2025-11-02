@@ -12,26 +12,26 @@ from data_structures.referential_array import ArrayR
 class Order:
     def __init__(self, hunger: int, location: Tuple[float, float]) -> None:
         """
-        An order with a hunger score and a location. The dispatch sets distance on receipt.
-
-        Complexity:
-        Best and worst: O(1). Stores fields and returns.
+        :complexity: Best = Worst = O(1).
+        We save the dispatch info and create an empty heap (no elements to rearrange).
         """
         self.hunger = hunger
         self.location = location
         self.distance: Optional[float] = None #added float
 
     def __str__(self) -> str:
+        """
+        :complexity: Best = Worst = O(1).
+        We build a small string from existing fields; no loops are involved.
+        """
         readable_distance = "?" if self.distance is None else f"{self.distance:.3f}"
         return f"Order(h={self.hunger}, loc={self.location}, d={readable_distance})"
     
 class OrderDispatch:
     def __init__(self, dispatch_location: Tuple[float, float], max_orders: int) -> None:
         """
-        Construct a dispatch with a location and a capacity on how many orders can be queued.
-
-        Complexity:
-        Best and worst: O(1). Allocates the heap structure and stores a few fields.
+        :complexity: Best = Worst = O(1).
+        We save the dispatch info and create an empty heap (no elements to rearrange).
         """
         self._dispatch = dispatch_location
         self._capacity = max_orders
@@ -40,29 +40,25 @@ class OrderDispatch:
 
     def _distance_from_dispatch(self, point: Tuple[float, float]) -> float:
         """
-        Euclidean distance between the dispatch and a given point.
-
-        Complexity:
-        Best and worst: O(1). Computes one hypot.
+        :complexity: Best = Worst = O(1).
+        One hypot call (fixed amount of math).
         """
         return math.hypot(point[0] - self._dispatch[0], point[1] - self._dispatch[1])
     
     def _foodfast(self, distance_value: float, hunger_value: int) -> float:
         """
+        :complexity: Best = Worst = O(1).
+        A single formula with a constant number of operations:
+        
         FoodFast score is 4*distance - 5*hunger. Smaller scores have higher priority.
-
-        Complexity:
-        Best and worst: O(1).
         """
         return 4.0 * distance_value - 5.0 * hunger_value
 
     def receive_order(self, order: Order) -> None:
         """
-        Receive an Order, set its distance from this dispatch, and enqueue by FoodFast priority.
-
-        Complexity:
-        Let N be the number of orders currently waiting.
-        Best and worst: O(log N).
+        :complexity: Best = Worst = O(log n), with n = current waiting orders.
+        Reason: set distance (O(1)), compute score (O(1)), and add to the heap.
+        Heap add “bubbles up” along the heap’s height, which grows like log n.
         """
         if len(self._pending) == self._capacity:
             raise Exception("Dispatch at capacity")
@@ -73,20 +69,15 @@ class OrderDispatch:
     
     def __len__(self) -> int:
         """
-        Number of orders currently waiting.
-
-        Complexity:
-        Best and worst: O(1).
+        :complexity: Best = Worst = O(1).
+        We return a stored count; it doesn’t depend on n beyond reading a number.
         """
         return len(self._pending)
     
     def deliver_single(self) -> Order:
         """
-        Remove and return the next order by increasing FoodFast (smallest score first).
-
-        Complexity:
-        Let N be the number of orders currently waiting.
-        Best and worst: O(log N).
+        :complexity: Best = Worst = O(log n), with n = current waiting orders.
+        Reason: one heap extract moves elements down the heap by about its height (log n).
         """
         if len(self._pending) == 0:
             raise Exception("No pending orders")
@@ -96,12 +87,15 @@ class OrderDispatch:
     
     def deliver_multiple(self, max_travel: float) -> ArrayList[Order]:
         """
-        Plan one trip: deliver as many orders as possible in increasing FoodFast order,
-        while always being able to return to the dispatch within max_travel.
+        :complexity: Best = Worst = O(k log n), with
+        n = current waiting orders and k = delivered now.
+        Reason: for each accepted order we do a constant amount of distance checks
+        and one heap extract (log n). There are at most k accepts before the trip stops.
 
-        Complexity:
-        Let N be the current number of waiting orders and k be how many are accepted in this run.
-        Best and worst: O(k log N).
+        Steps:
+        - If the best one alone cannot be delivered and returned, return empty.
+        - Otherwise, keep taking the next best as long as the total trip stays within the limit.
+        - Stop when the next candidate would make the trip too long or when the heap is empty.
         """
         delivered: ArrayList[Order] = ArrayList()
         if len(self._pending) == 0:

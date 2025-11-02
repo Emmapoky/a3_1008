@@ -11,13 +11,18 @@ from data_structures.binary_search_tree import BinarySearchTree, K, V
 class BetterBinarySearchTree(BinarySearchTree[K, V]):
     def range_query(self, low: K, high: K) -> Union[ArrayR[V], ArrayList[V]]:
         """
-            Return all items from the BST with keys, in the (inclusive) range of [low, high].
-            Return the result in either an ArrayR or an ArrayList.
-            
-            Complexity Analysis:
-            Let N be the number of nodes, h the tree height, and k the number of returned items.
-            Best: O(h) by pruning off-range subtrees via the BST property (e.g., all keys < low or > high).
-            Worst: O(N) when the range covers all keys so every node is visited (and k = N).     
+        Return all values whose keys lie in the inclusive range [low, high], in ascending key order.
+
+        :complexity: Best = O(h + k), Worst = O(N).
+        Best happens when pruning skips most subtrees and we only walk down one path (height h)
+        and collect k in-range items; Worst is when the range covers most keys (or the tree is
+        very unbalanced), so we touch all N nodes once.
+
+        Why this works:
+        - In-order traversal of a BST visits keys in ascending order, so values come out sorted
+          without any extra sorting.
+        - The BST property lets us prune: if node.key < low, skip its left; if node.key > high,
+          skip its right.
         """
         out: ArrayList[V] = ArrayList()
         self._range_query_aux(self._BinarySearchTree__root, low, high, out)
@@ -35,28 +40,16 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
             out.append(node.item)
             self._range_query_aux(node.right, low, high, out)
         
-    def balance_score(self):
-        """
-            Returns the balance score of the BST, which we define as the
-            difference between the ideal (balanced) height of the tree (achievable with a complete tree),
-            and the actual height of the tree.
-            Complexity Analysis:
-            ...
-        """
-        pass
     def balance_score(self) -> int:
         """
-        Returns the balance score of the BST, which we define as the
-        difference between the ideal (balanced) height of the tree (achievable with a complete tree),
-        and the actual height of the tree.
-           
-        Return balance score = actual_height - ideal_height, where height(empty) = -1.
+        Return balance score = actual_height - ideal_height, with height(empty) = -1.
 
-        Ideal height: the height of a complete binary tree with the same number of nodes,
-        given by ideal = ceil(log2(n + 1)) - 1 for n >= 1, and -1 when n = 0.
+        :complexity: Best = Worst = O(N) time and O(h) recursion space.
+        We compute the node count and the height once each by recursion; both visit every node once.
 
-        Complexity analysis:
-        Count and height are each computed once by recursion: time O(N), extra space O(h).
+        Notes:
+        - ideal_height for n nodes uses the complete-tree baseline: ceil(log2(n + 1)) - 1
+          (and −1 when n = 0).
         """
         n = self._count_nodes(self._BinarySearchTree__root)
         actual = self._height(self._BinarySearchTree__root)
@@ -64,11 +57,19 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         return actual - ideal
 
     def _count_nodes(self, node) -> int:
+        """
+        :complexity: Best = Worst = O(N).
+        Standard post-order count: 1 + left + right, touching each node exactly once.
+        """
         if node is None:
             return 0
         return 1 + self._count_nodes(node.left) + self._count_nodes(node.right)
 
     def _height(self, node) -> int:
+        """
+        :complexity: Best = Worst = O(N).
+        Height(empty) = -1 so a leaf has height 0; result is 1 + max(left_height, right_height).
+        """
         if node is None:
             return -1
         lh = self._height(node.left)
@@ -77,14 +78,16 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
     
     def rebalance(self) -> None:
         """
-        Rebuild the current tree into a balanced BST in place.
+        Rebuild the current tree into a balanced shape in place.
 
-        Method: recursively collect the in-order (key, value) sequence, clear the root,
-        then recursively insert midpoints first (divide-and-conquer) to create a balanced shape.
+        :complexity: Collect = O(N); Rebuild = O(N log N).
+        We first collect the in-order (key, value) sequence in O(N), then insert midpoints first
+        using the tree’s own insertion, which is O(log N) per insert overall once the shape becomes
+        balanced.
 
-        Complexity analysis:
-        O(N) to collect in-order; O(N log N) to rebuild via the BST’s recursive insertion,
-        with recursion depth O(h) during collect and O(log N) during rebuild on a balanced shape.
+        Method:
+        1) In-order collect to get (key, value) pairs in ascending key order.
+        2) Clear the root and insert midpoints first (divide-and-conquer) for a near-complete shape.
         """
         sorted_pairs: ArrayList[Tuple[K, V]] = ArrayList()
         self._collect_inorder(self._BinarySearchTree__root, sorted_pairs)
@@ -92,6 +95,10 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         self._rebuild_from_sorted(sorted_pairs, 0, len(sorted_pairs) - 1)
 
     def _collect_inorder(self, node, out: ArrayList[Tuple[K, V]]) -> None:
+        """
+        :complexity: Best = Worst = O(N).
+        In-order traversal (left -> visit -> right) yields ascending keys in a BST.
+        """
         if node is None:
             return
         self._collect_inorder(node.left, out)
@@ -99,6 +106,14 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         self._collect_inorder(node.right, out)
 
     def _rebuild_from_sorted(self, arr: ArrayList[Tuple[K, V]], lo: int, hi: int) -> None:
+        """
+        :complexity: Over the entire rebuild: O(N log N).
+        Each recursion chooses a midpoint (O(1)) and inserts via the tree API; across all N inserts,
+        the cost amortizes to O(N log N) as the tree becomes balanced.
+
+        Strategy:
+        - Pick mid = (lo+hi)//2, insert (key, value), then recurse on left and right halves.
+        """
         if lo > hi:
             return
         mid = (lo + hi) // 2

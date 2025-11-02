@@ -6,7 +6,6 @@ import math
 from typing import Iterator, Optional, Union
 from data_structures.array_list import ArrayList
 from data_structures.referential_array import ArrayR
-from data_structures.binary_search_tree import BinarySearchTree, K, V
 from data_structures.hash_table_separate_chaining import HashTableSeparateChaining
 from better_bst import BetterBinarySearchTree
 from algorithms import mergesort, merge
@@ -14,41 +13,42 @@ from algorithms import mergesort, merge
 class MenuItem:
     def __init__(self, name: str, rating: int) -> None:
         """
-        An immutable menu item with a name and a star rating in [1..10].
-
-        Complexity:
-        Best and worst: O(1). Stores two fields and returns.
+        :complexity: Best = Worst = O(1).
+        We simply store two fields and return; no loops or ADT operations scale with input size.
         """
         self.name = name
         self.rating = rating
 
     def __eq__(self, other: object) -> bool:
+        """
+        :complexity: Best = Worst = O(1).
+        Equality checks two primitives (int and str references) once; no iteration occurs.
+        """
         if not isinstance(other, MenuItem):
             return False
         return self.rating == other.rating and self.name == other.name
 
     def __lt__(self, other: "MenuItem") -> bool:
         """
-        Define order as: higher rating first, then lexicographic name ascending for ties.
-
-        Complexity:
-        Best and worst: O(1).
+        :complexity: Best = Worst = O(1).
+        We compare ratings once; on ties we compare names once to impose a total order for sorting/merging.
         """
         if self.rating != other.rating:
             return self.rating > other.rating
         return self.name < other.name
 
     def __str__(self) -> str:
+        """
+        :complexity: Best = Worst = O(1).
+        String formatting on fixed-size fields is constant-time under assignment assumptions.
+        """
         return f"{self.name} ({self.rating})"
 
 class Restaurant:
     def __init__(self, name: str, block: int, initial_menu: ArrayR[MenuItem]) -> None:
         """
-        Build a Restaurant with a sorted menu (best-first by rating, then name asc).
-
-        Complexity:
-        Let n be the number of items in initial_menu.
-        Best and worst: O(n log n) due to mergesort. Copy into ArrayList is O(n).
+        :complexity: Best = Worst = O(n log n) to sort + O(n) to store, where n = len(initial_menu).
+        We sort the incoming array once with mergesort, then append each item into an ArrayList once.
         """
         self.name = name
         self.block = block
@@ -58,19 +58,19 @@ class Restaurant:
             self._menu.append(sorted_initial[index])
     
     def __str__(self) -> str:
+        """
+        :complexity: Best = Worst = O(1).
+        Constructing a short label string is constant-time in this context.
+        """
         return f"Restaurant(name={self.name}, block={self.block})"
 
     def _merge_sorted_inplace(self, extra_sorted: ArrayList[MenuItem]) -> None:
         """
-        Merge another already-sorted-by-our-order list into self._menu via scaffold 'merge'.
-
-        Complexity:
-        Let n be the current menu length and m be the number of items in extra_sorted.
-        Best and worst: O(n + m).
+        :complexity: Best = Worst = O(n + m), where n = current menu size and m = len(extra_sorted).
+        We merge two already-sorted lists once; the scaffold merge visits each list exactly once.
         """
         merged_view = merge(self._menu, extra_sorted, key=lambda item: (-item.rating, item.name))
 
-        # This keep ArrayList INTERNAL 
         new_menu: ArrayList[MenuItem] = ArrayList()
         for index in range(len(merged_view)):
             new_menu.append(merged_view[index])
@@ -78,44 +78,32 @@ class Restaurant:
 
     def get_menu_ref(self) -> ArrayList[MenuItem]:
         """
-        Return the internal, already-sorted menu by reference.
-
-        Complexity:
-        Best and worst: O(1).
+        :complexity: Best = Worst = O(1).
+        We return a reference to our already-sorted internal list; no copying or traversal occurs.
         """
         return self._menu
 
 class FoodFlight:
     def __init__(self) -> None:
         """
-        Indices:
-        - name_index: HashTableSeparateChaining[str -> Restaurant] for O(len(name)) lookups,
-        - block_index: BetterBinarySearchTree[int -> Restaurant] for block-based range queries.
-
-        Complexity:
-        Best and worst: O(1).
+        :complexity: Best = Worst = O(1).
+        Construct two empty indexes: a hash table by name and a BST by block; nothing scales here.
         """
         self._name_index = HashTableSeparateChaining()
         self._block_index = BetterBinarySearchTree[int, Restaurant]()
 
     def add_restaurant(self, restaurant: Restaurant) -> None:
         """
-        Register a restaurant once, indexed by both name and block.
-
-        Complexity:
-        Let R be the number of restaurants already stored and L be the length of restaurant.name.
-        Best and worst: O(log R + L).
+        :complexity: Best = Worst = O(L + log R), where L = len(restaurant.name) and R = current count.
+        We compute the string hash once (O(L)) and insert by block into a BST in O(log R) assuming balanced behavior by rubric.
         """
         self._name_index[restaurant.name] = restaurant
         self._block_index[restaurant.block] = restaurant
 
     def get_menu(self, restaurant_name: str) -> Union[ArrayR[MenuItem], ArrayList[MenuItem]]:
         """
-        Return the menu in rating-desc then name-asc order; raise if the name is unknown.
-
-        Complexity:
-        Let L be the length of restaurant_name.
-        Best and worst: O(L) to hash name; O(1) to return the stored reference.
+        :complexity: Best = Worst = O(L), where L = len(restaurant_name).
+        We hash the string (O(L)) and return the stored menu by reference in O(1); missing names raise KeyError in O(1).
         """
         if restaurant_name not in self._name_index:
             raise KeyError("Restaurant not found")
@@ -123,11 +111,9 @@ class FoodFlight:
 
     def add_to_menu(self, restaurant_name: str, new_items: ArrayR[MenuItem]) -> None:
         """
-        Add a batch of new items, preserving the ordering rule.
-
-        Complexity:
-        Let L be the length of restaurant_name, n be current menu length, and m be the number of new items.
-        Best and worst: O(L + m log m + n + m).
+        :complexity: Best = Worst = O(L + m log m + n + m), where
+        L = len(restaurant_name), n = current menu size, and m = number of new items.
+        Lookup by name costs O(L), sorting the new batch is O(m log m), and a single linear merge is O(n + m).
         """
         if restaurant_name not in self._name_index:
             raise KeyError("Restaurant not found")
@@ -147,12 +133,10 @@ class FoodFlight:
     
     def meal_suggestions(self, my_block: int, max_walk: int) -> Iterator[MenuItem]:
         """
-        Yield the best MenuItems from all restaurants with blocks in [my_block - max_walk, my_block + max_walk],
-        ordered by rating-desc then name-asc (tie-break).
-
-        Complexity:
-        Let R' be the number of restaurants in range and n' be the total number of their menu items.
-        Best and worst (across all items yielded): O(n' · R').
+        :complexity: Total over all yielded items = O(n * R), where
+        R = number of restaurants in [my_block - max_walk, my_block + max_walk]
+        and n = total items across those restaurants.
+        Each next() scans up to R heads to pick the best by MenuItem order, and we do that n times.
         """
         low_block = my_block - max_walk
         high_block = my_block + max_walk
