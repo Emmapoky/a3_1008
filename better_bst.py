@@ -33,7 +33,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         self._range_query_aux(self._BinarySearchTree__root, low, high, out)
         return out
 
-    def _range_query_aux(self, node, low: K, high: K, out: ArrayList[V]) -> None:
+    def _range_query_aux(self, node, low: K, high: K, out: ArrayList[V]) -> ArrayList[V]:
         if node is None:
             return
         if node.key > high:
@@ -53,7 +53,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         We compute the node count and the height once each by recursion; both visit every node once.
 
         We count nodes once and compute height once using recursion; both touch each node
-        a constant number of times. The ideal height for n nodes is ceil(log2(n + 1)) - 1 (and -1 when n = 0).
+        a constant number of times. The ideal height for n nodes is ceil(log2(n + 1)) - 1 (and -1 when n = O).
         """
         n = self._count_nodes(self._BinarySearchTree__root)
         actual = self._height(self._BinarySearchTree__root)

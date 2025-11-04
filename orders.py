@@ -35,7 +35,7 @@ class OrderDispatch:
     def __init__(self, dispatch_location: Tuple[float, float], max_orders: int) -> None:
         """
         :complexity: The best case and also worst case is O(1).
-        We save the dispatch info and create an empty heap (no elements to rearrange).
+        We store hunger and location and set distance to None. We also create an empty heap (no elements to rearrange).
         """
         self._dispatch = dispatch_location
         self._capacity = max_orders
@@ -73,7 +73,7 @@ class OrderDispatch:
     
     def __len__(self) -> int:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We return a stored count; it doesn’t depend on n beyond reading a number.
         """
         return len(self._pending)
