@@ -7,7 +7,6 @@ from typing import Tuple, Optional
 
 from data_structures.array_max_heap import ArrayMaxHeap
 from data_structures.array_list import ArrayList
-from data_structures.referential_array import ArrayR
 
 class Order:
     def __init__(self, hunger: int, location: Tuple[float, float]) -> None:
