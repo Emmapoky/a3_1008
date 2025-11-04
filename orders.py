@@ -16,7 +16,7 @@ from data_structures.array_list import ArrayList
 class Order:
     def __init__(self, hunger: int, location: Tuple[float, float]) -> None:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We save the dispatch info and create an empty heap (no elements to rearrange).
         """
         self.hunger = hunger
@@ -25,7 +25,7 @@ class Order:
 
     def __str__(self) -> str:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We build a small string from existing fields; no loops are involved.
         """
         readable_distance = "?" if self.distance is None else f"{self.distance:.3f}"
@@ -34,7 +34,7 @@ class Order:
 class OrderDispatch:
     def __init__(self, dispatch_location: Tuple[float, float], max_orders: int) -> None:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We save the dispatch info and create an empty heap (no elements to rearrange).
         """
         self._dispatch = dispatch_location
@@ -44,14 +44,14 @@ class OrderDispatch:
 
     def _distance_from_dispatch(self, point: Tuple[float, float]) -> float:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         One hypot call (fixed amount of math).
         """
         return math.hypot(point[0] - self._dispatch[0], point[1] - self._dispatch[1])
     
     def _foodfast(self, distance_value: float, hunger_value: int) -> float:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         A single formula with a constant number of operations:
         
         FoodFast score is 4*distance - 5*hunger. Smaller scores have higher priority.
@@ -73,7 +73,7 @@ class OrderDispatch:
     
     def __len__(self) -> int:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         We return a stored count; it doesn’t depend on n beyond reading a number.
         """
         return len(self._pending)

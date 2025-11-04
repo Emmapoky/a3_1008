@@ -20,7 +20,7 @@ from algorithms import mergesort, merge
 class MenuItem:
     def __init__(self, name: str, rating: int) -> None:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We basically store two fields and return; no loops or ADT operations scale with input size.
         """
         self.name = name
@@ -28,7 +28,7 @@ class MenuItem:
 
     def __eq__(self, other: object) -> bool:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         Equality checks two primitives (int and str references) once; no iteration occurs.
         """
         if not isinstance(other, MenuItem):
@@ -37,7 +37,7 @@ class MenuItem:
 
     def __lt__(self, other: "MenuItem") -> bool:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We compare ratings once; on ties we compare names once to impose a total order for sorting/merging.
         """
         if self.rating != other.rating:
@@ -46,7 +46,7 @@ class MenuItem:
 
     def __str__(self) -> str:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         String formatting on fixed-size fields is constant-time under assignment assumptions.
         """
         return f"{self.name} ({self.rating})"
@@ -66,7 +66,7 @@ class Restaurant:
     
     def __str__(self) -> str:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         Constructing a short label string is constant-time in this context.
         """
         return f"Restaurant(name={self.name}, block={self.block})"
@@ -85,7 +85,7 @@ class Restaurant:
 
     def get_menu_ref(self) -> ArrayList[MenuItem]:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         We return a reference to our already-sorted internal list; no copying or traversal occurs.
         """
         return self._menu
@@ -93,7 +93,7 @@ class Restaurant:
 class FoodFlight:
     def __init__(self) -> None:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(1).
         Construct two empty indexes: a hash table by name and a BST by block; nothing scales here.
         """
         self._name_index = HashTableSeparateChaining()
@@ -107,7 +107,7 @@ class FoodFlight:
         self._name_index[restaurant.name] = restaurant
         self._block_index[restaurant.block] = restaurant
 
-    def get_menu(self, restaurant_name: str) -> Union[ArrayR[MenuItem], ArrayList[MenuItem]]:
+    def get_menu(self, restaurant_name: str) -> ArrayList[MenuItem]:
         """
         :complexity: Best = Worst = O(L), where L = len(restaurant_name).
         We hash the string (O(L)) and return the stored menu by reference in O(1); missing names raise KeyError in O(1).
@@ -163,50 +163,76 @@ class FoodFlight:
                 self._cursors = cursors_ref
                 self._last_menu = -1
                 self._current_rating: Optional[int] = None
-                self._served_once = set()  # menus served once at current best rating
+                self._served_once = ArrayList()
+                for _ in range(len(self._menus)):
+                    self._served_once.append(False)
 
             def __iter__(self) -> "SuggestIter":
                 return self
 
             def __next__(self) -> MenuItem:
-                # gather heads
-                heads = []
+                # find best rating among available heads (no Python lists/tuples)
+                any_head = False
+                best_rating: Optional[int] = None
                 for m in range(len(self._menus)):
                     pos = self._cursors[m]
                     menu_ref = self._menus[m]
                     if pos < len(menu_ref):
-                        heads.append((m, menu_ref[pos]))
-                if not heads:
+                        any_head = True
+                        r = menu_ref[pos].rating
+                        if best_rating is None or r > best_rating:
+                            best_rating = r
+                if not any_head:
                     raise StopIteration
 
-                # best rating among heads
-                best_rating = max(item.rating for _, item in heads)
-
-                # new round when rating changes
+                # reset per-rating round
                 if self._current_rating != best_rating:
                     self._current_rating = best_rating
-                    self._served_once.clear()
+                    for i in range(len(self._served_once)):
+                        self._served_once[i] = False
 
-                # head to best rating
-                top = [(i, it) for (i, it) in heads if it.rating == best_rating]
+                # collect indices at best rating
+                top_idx = ArrayList()
+                for m in range(len(self._menus)):
+                    pos = self._cursors[m]
+                    menu_ref = self._menus[m]
+                    if pos < len(menu_ref) and menu_ref[pos].rating == best_rating:
+                        top_idx.append(m)
 
-                # I prefer menus not yet served once at this rating
-                pool = [(i, it) for (i, it) in top if i not in self._served_once]
-                if not pool:
-                    self._served_once.clear()
-                    pool = top
+                # prefer indices not served in this round
+                pool_idx = ArrayList()
+                for j in range(len(top_idx)):
+                    i = top_idx[j]
+                    if not self._served_once[i]:
+                        pool_idx.append(i)
+                if len(pool_idx) == 0:
+                    for i in range(len(self._served_once)):
+                        self._served_once[i] = False
+                    pool_idx = top_idx  # reuse the same ArrayList reference
 
-                # avoid imediate repeat IF possible
-                alt = [(i, it) for (i, it) in pool if i != self._last_menu]
-                if alt:
-                    pool = alt
+                # avoid immediate repeat if possible
+                candidate_idx = ArrayList()
+                for j in range(len(pool_idx)):
+                    i = pool_idx[j]
+                    if i != self._last_menu:
+                        candidate_idx.append(i)
+                if len(candidate_idx) > 0:
+                    pool_idx = candidate_idx
 
-                # pick teh smallest name
-                chosen_i, chosen_item = min(pool, key=lambda t: t[1].name)
+                # pick lexicographically smallest name among pool_idx
+                chosen_i = pool_idx[0]
+                chosen_name = self._menus[chosen_i][self._cursors[chosen_i]].name
+                for j in range(1, len(pool_idx)):
+                    i = pool_idx[j]
+                    name_i = self._menus[i][self._cursors[i]].name
+                    if name_i < chosen_name:
+                        chosen_i = i
+                        chosen_name = name_i
 
-                # move forward and forward and mark
+                # advance and mark
+                chosen_item = self._menus[chosen_i][self._cursors[chosen_i]]
                 self._cursors[chosen_i] = self._cursors[chosen_i] + 1
-                self._served_once.add(chosen_i)
+                self._served_once[chosen_i] = True
                 self._last_menu = chosen_i
                 return chosen_item
 

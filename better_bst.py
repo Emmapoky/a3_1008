@@ -23,7 +23,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         and collect k in-range items; Worst is when the range covers most keys (or the tree is
         very unbalanced), so we touch all N nodes once.
 
-        Why this works:
+        This works because:
         - In-order traversal of a BST visits keys in ascending order, so values come out sorted
           without any extra sorting.
         - The BST property lets us prune: if node.key < low, skip its left; if node.key > high,
@@ -62,7 +62,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _count_nodes(self, node) -> int:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(N).
         Standard post-order count: 1 + left + right, touching each node exactly once.
         """
         if node is None:
@@ -71,8 +71,8 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _height(self, node) -> int:
         """
-        :complexity: The best case and also worst case is 0(1).
-        Height(empty) = -1 so a leaf has height 0; result is 1 + max(left_height, right_height).
+        :complexity: The best case and also worst case is O(N).
+        Height(empty) = -1 so a leaf has height O; result is 1 + max(left_height, right_height).
         """
         if node is None:
             return -1
@@ -89,7 +89,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         using the tree’s own insertion, which is O(log N) per insert overall once the shape becomes
         balanced.
 
-        Basically, collect uses a single in-order traversal; rebuild inserts each of the N items once.
+        All in all, collect uses a single in-order traversal; rebuild inserts each of the N items once.
         """
         sorted_pairs = ArrayList()
         self._collect_inorder(self._BinarySearchTree__root, sorted_pairs)
@@ -98,7 +98,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _collect_inorder(self, node, out: ArrayList[Tuple[K, V]]) -> None:
         """
-        :complexity: The best case and also worst case is 0(1).
+        :complexity: The best case and also worst case is O(N).
         In-order traversal (left -> visit -> right) yields ascending keys in a BST.
         """
         if node is None:
