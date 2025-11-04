@@ -33,7 +33,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         self._range_query_aux(self._BinarySearchTree__root, low, high, out)
         return out
 
-    def _range_query_aux(self, node, low: K, high: K, out: ArrayList[V]) -> ArrayList[V]:
+    def _range_query_aux(self, node, low: K, high: K, out: ArrayList[V]) -> None:
         if node is None:
             return
         if node.key > high:
