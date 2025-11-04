@@ -1,5 +1,10 @@
 # You're welcome to use this decorator
 # See: https://www.geeksforgeeks.org/python/python-functools-total_ordering/
+
+# Context: Feel free to check these for my thought process and implementation notes.
+# Github: https://github.com/Emmapoky/a3_1008
+# Notes:  https://drive.google.com/file/d/1Tl1zwuZxAvG8mrH47QbRnYfGvCR3fv2B/view?usp=sharing
+
 from functools import total_ordering
 import math
 
@@ -57,7 +62,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _count_nodes(self, node) -> int:
         """
-        :complexity: Best = Worst = O(N).
+        :complexity: The best case and also worst case is 0(1).
         Standard post-order count: 1 + left + right, touching each node exactly once.
         """
         if node is None:
@@ -66,7 +71,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _height(self, node) -> int:
         """
-        :complexity: Best = Worst = O(N).
+        :complexity: The best case and also worst case is 0(1).
         Height(empty) = -1 so a leaf has height 0; result is 1 + max(left_height, right_height).
         """
         if node is None:
@@ -93,7 +98,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _collect_inorder(self, node, out: ArrayList[Tuple[K, V]]) -> None:
         """
-        :complexity: Best = Worst = O(N).
+        :complexity: The best case and also worst case is 0(1).
         In-order traversal (left -> visit -> right) yields ascending keys in a BST.
         """
         if node is None:

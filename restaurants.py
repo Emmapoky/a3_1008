@@ -1,5 +1,10 @@
 # You're welcome to use this decorator
 # See: https://www.geeksforgeeks.org/python/python-functools-total_ordering/
+
+# Context: Feel free to check these for my thought process and implementation notes.
+# Github: https://github.com/Emmapoky/a3_1008
+# Notes:  https://drive.google.com/file/d/1Tl1zwuZxAvG8mrH47QbRnYfGvCR3fv2B/view?usp=sharing
+
 from functools import total_ordering
 import math
 
@@ -15,15 +20,15 @@ from algorithms import mergesort, merge
 class MenuItem:
     def __init__(self, name: str, rating: int) -> None:
         """
-        :complexity: Best = Worst = O(1).
-        We simply store two fields and return; no loops or ADT operations scale with input size.
+        :complexity: The best case and also worst case is 0(1).
+        We basically store two fields and return; no loops or ADT operations scale with input size.
         """
         self.name = name
         self.rating = rating
 
     def __eq__(self, other: object) -> bool:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         Equality checks two primitives (int and str references) once; no iteration occurs.
         """
         if not isinstance(other, MenuItem):
@@ -32,7 +37,7 @@ class MenuItem:
 
     def __lt__(self, other: "MenuItem") -> bool:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         We compare ratings once; on ties we compare names once to impose a total order for sorting/merging.
         """
         if self.rating != other.rating:
@@ -41,7 +46,7 @@ class MenuItem:
 
     def __str__(self) -> str:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         String formatting on fixed-size fields is constant-time under assignment assumptions.
         """
         return f"{self.name} ({self.rating})"
@@ -61,7 +66,7 @@ class Restaurant:
     
     def __str__(self) -> str:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         Constructing a short label string is constant-time in this context.
         """
         return f"Restaurant(name={self.name}, block={self.block})"
@@ -80,7 +85,7 @@ class Restaurant:
 
     def get_menu_ref(self) -> ArrayList[MenuItem]:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         We return a reference to our already-sorted internal list; no copying or traversal occurs.
         """
         return self._menu
@@ -88,7 +93,7 @@ class Restaurant:
 class FoodFlight:
     def __init__(self) -> None:
         """
-        :complexity: Best = Worst = O(1).
+        :complexity: The best case and also worst case is 0(1).
         Construct two empty indexes: a hash table by name and a BST by block; nothing scales here.
         """
         self._name_index = HashTableSeparateChaining()
@@ -182,24 +187,24 @@ class FoodFlight:
                     self._current_rating = best_rating
                     self._served_once.clear()
 
-                # heads at best rating
+                # head to best rating
                 top = [(i, it) for (i, it) in heads if it.rating == best_rating]
 
-                # prefer menus not yet served once at this rating
+                # I prefer menus not yet served once at this rating
                 pool = [(i, it) for (i, it) in top if i not in self._served_once]
                 if not pool:
                     self._served_once.clear()
                     pool = top
 
-                # avoid immediate repeat if possible
+                # avoid imediate repeat IF possible
                 alt = [(i, it) for (i, it) in pool if i != self._last_menu]
                 if alt:
                     pool = alt
 
-                # pick lexicographically smallest name
+                # pick teh smallest name
                 chosen_i, chosen_item = min(pool, key=lambda t: t[1].name)
 
-                # advance and mark
+                # move forward and forward and mark
                 self._cursors[chosen_i] = self._cursors[chosen_i] + 1
                 self._served_once.add(chosen_i)
                 self._last_menu = chosen_i
