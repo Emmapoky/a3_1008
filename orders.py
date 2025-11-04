@@ -17,7 +17,7 @@ class Order:
         """
         self.hunger = hunger
         self.location = location
-        self.distance: Optional[float] = None #added float
+        self.distance = None
 
     def __str__(self) -> str:
         """
@@ -35,7 +35,7 @@ class OrderDispatch:
         """
         self._dispatch = dispatch_location
         self._capacity = max_orders
-        self._pending: ArrayMaxHeap[tuple[float, int, Order]] = ArrayMaxHeap(max_orders)
+        self._pending = ArrayMaxHeap(max_orders)
         self._tie_counter = 0
 
     def _distance_from_dispatch(self, point: Tuple[float, float]) -> float:
@@ -97,7 +97,7 @@ class OrderDispatch:
         - Otherwise, keep taking the next best as long as the total trip stays within the limit.
         - Stop when the next candidate would make the trip too long or when the heap is empty.
         """
-        delivered: ArrayList[Order] = ArrayList()
+        delivered = ArrayList()
         if len(self._pending) == 0:
             return delivered
 

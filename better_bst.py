@@ -24,7 +24,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         - The BST property lets us prune: if node.key < low, skip its left; if node.key > high,
           skip its right.
         """
-        out: ArrayList[V] = ArrayList()
+        out = ArrayList()
         self._range_query_aux(self._BinarySearchTree__root, low, high, out)
         return out
 
@@ -47,9 +47,8 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         :complexity: Best = Worst = O(N) time and O(h) recursion space.
         We compute the node count and the height once each by recursion; both visit every node once.
 
-        Notes:
-        - ideal_height for n nodes uses the complete-tree baseline: ceil(log2(n + 1)) - 1
-          (and −1 when n = 0).
+        We count nodes once and compute height once using recursion; both touch each node
+        a constant number of times. The ideal height for n nodes is ceil(log2(n + 1)) - 1 (and -1 when n = 0).
         """
         n = self._count_nodes(self._BinarySearchTree__root)
         actual = self._height(self._BinarySearchTree__root)
@@ -85,11 +84,9 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         using the tree’s own insertion, which is O(log N) per insert overall once the shape becomes
         balanced.
 
-        Method:
-        1) In-order collect to get (key, value) pairs in ascending key order.
-        2) Clear the root and insert midpoints first (divide-and-conquer) for a near-complete shape.
+        Basically, collect uses a single in-order traversal; rebuild inserts each of the N items once.
         """
-        sorted_pairs: ArrayList[Tuple[K, V]] = ArrayList()
+        sorted_pairs = ArrayList()
         self._collect_inorder(self._BinarySearchTree__root, sorted_pairs)
         self._BinarySearchTree__root = None
         self._rebuild_from_sorted(sorted_pairs, 0, len(sorted_pairs) - 1)
@@ -111,8 +108,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         Each recursion chooses a midpoint (O(1)) and inserts via the tree API; across all N inserts,
         the cost amortizes to O(N log N) as the tree becomes balanced.
 
-        Strategy:
-        - Pick mid = (lo+hi)//2, insert (key, value), then recurse on left and right halves.
+        In my chosen strategy I pick mid = (lo+hi)//2, insert (key, value), then recurse on left and right halves.
         """
         if lo > hi:
             return

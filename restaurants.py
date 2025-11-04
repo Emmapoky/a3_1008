@@ -7,7 +7,9 @@ from typing import Iterator, Optional, Union
 from data_structures.array_list import ArrayList
 from data_structures.referential_array import ArrayR
 from data_structures.hash_table_separate_chaining import HashTableSeparateChaining
+
 from better_bst import BetterBinarySearchTree
+
 from algorithms import mergesort, merge
 
 class MenuItem:
@@ -53,7 +55,7 @@ class Restaurant:
         self.name = name
         self.block = block
         sorted_initial = mergesort(initial_menu, key=lambda item: (-item.rating, item.name))
-        self._menu: ArrayList[MenuItem] = ArrayList()
+        self._menu = ArrayList()
         for index in range(len(sorted_initial)):
             self._menu.append(sorted_initial[index])
     
@@ -71,7 +73,7 @@ class Restaurant:
         """
         merged_view = merge(self._menu, extra_sorted, key=lambda item: (-item.rating, item.name))
 
-        new_menu: ArrayList[MenuItem] = ArrayList()
+        new_menu = ArrayList()
         for index in range(len(merged_view)):
             new_menu.append(merged_view[index])
         self._menu = new_menu
@@ -119,13 +121,13 @@ class FoodFlight:
             raise KeyError("Restaurant not found")
         restaurant_ref = self._name_index[restaurant_name]
 
-        buffer_new: ArrayList[MenuItem] = ArrayList()
+        buffer_new = ArrayList()
         for index in range(len(new_items)):
             buffer_new.append(new_items[index])
 
         sorted_new_view = mergesort(buffer_new, key=lambda item: (-item.rating, item.name))
 
-        sorted_new_list: ArrayList[MenuItem] = ArrayList()
+        sorted_new_list = ArrayList()
         for index in range(len(sorted_new_view)):
             sorted_new_list.append(sorted_new_view[index])
 
@@ -142,11 +144,11 @@ class FoodFlight:
         high_block = my_block + max_walk
         in_range_restaurants: ArrayList[Restaurant] = self._block_index.range_query(low_block, high_block)
 
-        menus_in_range: ArrayList[ArrayList[MenuItem]] = ArrayList()
+        menus_in_range = ArrayList()
         for restaurant_index in range(len(in_range_restaurants)):
             menus_in_range.append(in_range_restaurants[restaurant_index].get_menu_ref())
 
-        cursors_by_menu: ArrayList[int] = ArrayList()
+        cursors_by_menu = ArrayList()
         for _ in range(len(menus_in_range)):
             cursors_by_menu.append(0)
 
@@ -154,25 +156,54 @@ class FoodFlight:
             def __init__(self, menus_ref: ArrayList[ArrayList[MenuItem]], cursors_ref: ArrayList[int]) -> None:
                 self._menus = menus_ref
                 self._cursors = cursors_ref
+                self._last_menu = -1
+                self._current_rating: Optional[int] = None
+                self._served_once = set()  # menus served once at current best rating
 
             def __iter__(self) -> "SuggestIter":
                 return self
 
             def __next__(self) -> MenuItem:
-                best_menu_index = -1
-                best_candidate: Optional[MenuItem] = None
-                for menu_index in range(len(self._menus)):
-                    cursor_position = self._cursors[menu_index]
-                    menu_ref = self._menus[menu_index]
-                    if cursor_position < len(menu_ref):
-                        candidate_item = menu_ref[cursor_position]
-                        if best_candidate is None or candidate_item < best_candidate:
-                            best_candidate = candidate_item
-                            best_menu_index = menu_index
-                if best_menu_index == -1:
+                # gather heads
+                heads = []
+                for m in range(len(self._menus)):
+                    pos = self._cursors[m]
+                    menu_ref = self._menus[m]
+                    if pos < len(menu_ref):
+                        heads.append((m, menu_ref[pos]))
+                if not heads:
                     raise StopIteration
-                self._cursors[best_menu_index] = self._cursors[best_menu_index] + 1
-                return best_candidate  # type: ignore
+
+                # best rating among heads
+                best_rating = max(item.rating for _, item in heads)
+
+                # new round when rating changes
+                if self._current_rating != best_rating:
+                    self._current_rating = best_rating
+                    self._served_once.clear()
+
+                # heads at best rating
+                top = [(i, it) for (i, it) in heads if it.rating == best_rating]
+
+                # prefer menus not yet served once at this rating
+                pool = [(i, it) for (i, it) in top if i not in self._served_once]
+                if not pool:
+                    self._served_once.clear()
+                    pool = top
+
+                # avoid immediate repeat if possible
+                alt = [(i, it) for (i, it) in pool if i != self._last_menu]
+                if alt:
+                    pool = alt
+
+                # pick lexicographically smallest name
+                chosen_i, chosen_item = min(pool, key=lambda t: t[1].name)
+
+                # advance and mark
+                self._cursors[chosen_i] = self._cursors[chosen_i] + 1
+                self._served_once.add(chosen_i)
+                self._last_menu = chosen_i
+                return chosen_item
 
         return SuggestIter(menus_in_range, cursors_by_menu)
 
