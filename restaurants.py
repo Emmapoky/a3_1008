@@ -117,7 +117,7 @@ class FoodFlight:
 
     def get_menu(self, restaurant_name: str) -> ArrayList[MenuItem]:
         """
-        :complexity: Best and Worstare both O(L), where L is the length of the name.
+        :complexity: Best and Worst are both O(L), where L is the length of the name.
         We hash the name to find the restaurant and then return the menu reference in constant time; 
         missing names raise a KeyError after the same hash cost.
         """
@@ -127,7 +127,7 @@ class FoodFlight:
 
     def add_to_menu(self, restaurant_name: str, new_items: ArrayR[MenuItem]) -> None:
         """
-        :complexity: Best = Worst = O(L + m log m + n + m), where L is the length of the name, 
+        :complexity: Best & Worst are O(L + m log m + n + m), where L is the length of the name, 
         n is the current menu size, and m is the number of new items. 
         We hash the name once, sort the new items with mergesort in O(mlogm), and perform one 
         linear merge of sizesn n & m.
@@ -195,9 +195,7 @@ class FoodFlight:
                 and pick the smallest name among the remaining choices, all these steps touch at 
                 most R indices once per yield.​
                 """
-
-
-                # find best rating among available heads (no Python lists/tuples)
+                # find best rating among available heads 
                 any_head = False
                 best_rating: Optional[int] = None
                 for m in range(len(self._menus)):
@@ -245,7 +243,7 @@ class FoodFlight:
                 if len(candidate_idx) > 0:
                     pool_idx = candidate_idx
 
-                # pick lexicographically smallest name among pool_idx
+                # pick the smallest name among pool_idx
                 chosen_i = pool_idx[0]
                 chosen_name = self._menus[chosen_i][self._cursors[chosen_i]].name
                 for j in range(1, len(pool_idx)):
@@ -255,7 +253,7 @@ class FoodFlight:
                         chosen_i = i
                         chosen_name = name_i
 
-                # advance and mark
+                # move forward and mark
                 chosen_item = self._menus[chosen_i][self._cursors[chosen_i]]
                 self._cursors[chosen_i] = self._cursors[chosen_i] + 1
                 self._served_once[chosen_i] = True
