@@ -8,13 +8,12 @@
 from functools import total_ordering
 import math
 
-from typing import Union, Tuple
+from typing import Tuple
 from data_structures.array_list import ArrayList
-from data_structures.referential_array import ArrayR
 from data_structures.binary_search_tree import BinarySearchTree, K, V
 
 class BetterBinarySearchTree(BinarySearchTree[K, V]):
-    def range_query(self, low: K, high: K) -> Union[ArrayR[V], ArrayList[V]]:
+    def range_query(self, low: K, high: K) -> ArrayList[V]:
         """
         Return all values whose keys lie in the inclusive range [low, high], in ascending key order.
 
