@@ -17,16 +17,17 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         """
         Return all values whose keys lie in the inclusive range [low, high], in ascending key order.
 
-        :complexity: Best = O(h + k), Worst = O(N).
-        Best happens when pruning skips most subtrees and we only walk down one path (height h)
-        and collect k in-range items; Worst is when the range covers most keys (or the tree is
-        very unbalanced), so we touch all N nodes once.
+        :complexity: Best is O(h + k), Worst is O(N).
 
-        This works because:
-        - In-order traversal of a BST visits keys in ascending order, so values come out sorted
-          without any extra sorting.
-        - The BST property lets us prune: if node.key < low, skip its left; if node.key > high,
-          skip its right.
+        The best case happens when key comparisons let the search prune most subtrees, so the traversal follows 
+        one path of length h and visits only the k in‑range nodes to collect their values.​
+        The worst case happens when the requested range covers most keys or the tree is very unbalanced, so the 
+        traversal touches almost all N nodes.​
+
+        This all works beacuse, in‑order traversal visits keys in ascending order, as such, the returned values are 
+        already in ascending key order without extra work.​
+        The BST property allows pruning during the traversal: if node.key < low, the left subtree is skipped, 
+        and if node.key > high, the right subtree is skipped.
         """
         out = ArrayList()
         self._range_query_aux(self._BinarySearchTree__root, low, high, out)
@@ -46,13 +47,14 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
         
     def balance_score(self) -> int:
         """
-        Return balance score = actual_height - ideal_height, with height(empty) = -1.
+        Return balance score equates to actual_height minus ideal_height, with height(empty) being -1.
 
-        :complexity: Best = Worst = O(N) time and O(h) recursion space.
-        We compute the node count and the height once each by recursion; both visit every node once.
-
-        We count nodes once and compute height once using recursion; both touch each node
-        a constant number of times. The ideal height for n nodes is ceil(log2(n + 1)) - 1 (and -1 when n = O).
+        :complexity: Best and Worst are both is O(N), where N is the number of nodes & h is the tree height.
+        Both cases run in linear time because we traverse the tree once to count nodes and once to compute 
+        height, visiting each node a constant number of times.​
+        
+        Moreover, the ideal height is computed from the node count using [ log (base 2) (n+1) - 1 ] 
+        (or −1 when n=0).
         """
         n = self._count_nodes(self._BinarySearchTree__root)
         actual = self._height(self._BinarySearchTree__root)
@@ -61,8 +63,11 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _count_nodes(self, node) -> int:
         """
-        :complexity: The best case and also worst case is O(N).
-        Standard post-order count: 1 + left + right, touching each node exactly once.
+        Count the number of nodes in the subtree rooted at node.
+
+        :complexity: Best and Worst are both is O(N), where N is the number of nodes in the subtree.
+        Here, the recursion visits each node exactly one time and combines the counts from the left 
+        and right subtrees using a constant amount of work per node.
         """
         if node is None:
             return 0
@@ -70,8 +75,11 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _height(self, node) -> int:
         """
-        :complexity: The best case and also worst case is O(N).
-        Height(empty) = -1 so a leaf has height O; result is 1 + max(left_height, right_height).
+        Compute the height of the subtree rooted at node, with height(empty) = −1.
+
+        :complexity: The best case and also worst case is O(N), where N is the number of nodes in the subtree.
+        Here, the recursion touches each node once to take 1+max(left height,right height), 
+        so the work is linear in the size of the subtree.
         """
         if node is None:
             return -1
@@ -81,14 +89,14 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
     
     def rebalance(self) -> None:
         """
-        Rebuild the current tree into a balanced shape in place.
+        Rebuild the current tree into a balanced shape in place by collecting items and 
+        reinserting in midpoint order.
 
-        :complexity: Collect = O(N); Rebuild = O(N log N).
-        We first collect the in-order (key, value) sequence in O(N), then insert midpoints first
-        using the tree’s own insertion, which is O(log N) per insert overall once the shape becomes
-        balanced.
-
-        All in all, collect uses a single in-order traversal; rebuild inserts each of the N items once.
+        :complexity: Collect is O(N); Rebuild is O(N log N), where N is the number of nodes.​
+        The collect step performs one in‑order traversal to gather all (key, value) pairs into 
+        a list, touching each node once.​
+        The rebuild step inserts midpoints via the tree’s insertion method; each insert costs 
+        O(log N) as the shape becomes balanced, so across N inserts the total is O(N log N).
         """
         sorted_pairs = ArrayList()
         self._collect_inorder(self._BinarySearchTree__root, sorted_pairs)
@@ -97,8 +105,11 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _collect_inorder(self, node, out: ArrayList[Tuple[K, V]]) -> None:
         """
-        :complexity: The best case and also worst case is O(N).
-        In-order traversal (left -> visit -> right) yields ascending keys in a BST.
+        Collect all (key, value) pairs from the subtree in ascending key order using in‑order traversal.
+
+        :complexity: The best case and also worst case is O(N), where N is the number of nodes in the subtree.​
+        In‑order traversal visits each node exactly once and appends its (key, value) to the output, 
+        so the total work is linear.
         """
         if node is None:
             return
@@ -108,11 +119,11 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
 
     def _rebuild_from_sorted(self, arr: ArrayList[Tuple[K, V]], lo: int, hi: int) -> None:
         """
-        :complexity: Over the entire rebuild: O(N log N).
-        Each recursion chooses a midpoint (O(1)) and inserts via the tree API; across all N inserts,
-        the cost amortizes to O(N log N) as the tree becomes balanced.
+        Insert items back into the tree from a sorted array by choosing midpoints first to form a balanced shape.
 
-        In my chosen strategy I pick mid = (lo+hi)//2, insert (key, value), then recurse on left and right halves.
+        :complexity: Over the entire rebuild it is O(N log N), where N is the number of items.
+        Each recursion picks a midpoint in constant time and performs a single BST insertion; as the tree becomes 
+        balanced, each insertion costs O(log N), so the N insertions add up to O(N log N).
         """
         if lo > hi:
             return

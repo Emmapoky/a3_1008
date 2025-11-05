@@ -8,7 +8,7 @@
 from functools import total_ordering
 import math
 
-from typing import Tuple, Optional
+from typing import Tuple
 
 from data_structures.array_max_heap import ArrayMaxHeap
 from data_structures.array_list import ArrayList
