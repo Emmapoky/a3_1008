@@ -59,7 +59,7 @@ class Restaurant:
         """
         self.name = name
         self.block = block
-        sorted_initial = mergesort(initial_menu)
+        sorted_initial = mergesort(initial_menu, key=lambda item: (-item.rating, item.name))
         self._menu = ArrayList()
         for index in range(len(sorted_initial)):
             self._menu.append(sorted_initial[index])
@@ -76,7 +76,7 @@ class Restaurant:
         :complexity: Best = Worst = O(n + m), where n = current menu size and m = len(extra_sorted).
         We merge two already-sorted lists once; the scaffold merge visits each list exactly once.
         """
-        merged_view = merge(self._menu, extra_sorted)
+        merged_view = merge(self._menu, extra_sorted, key=lambda item: (-item.rating, item.name))
 
         new_menu = ArrayList()
         for index in range(len(merged_view)):
@@ -130,7 +130,7 @@ class FoodFlight:
         for index in range(len(new_items)):
             buffer_new.append(new_items[index])
 
-        sorted_new_view = mergesort(buffer_new)
+        sorted_new_view = mergesort(buffer_new, key=lambda item: (-item.rating, item.name))
 
         sorted_new_list = ArrayList()
         for index in range(len(sorted_new_view)):
