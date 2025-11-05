@@ -2,7 +2,6 @@
 # See: https://www.geeksforgeeks.org/python/python-functools-total_ordering/
 
 # Context: Feel free to check these for my thought process and implementation notes.
-# Github: https://github.com/Emmapoky/a3_1008
 # Notes:  https://drive.google.com/file/d/1Tl1zwuZxAvG8mrH47QbRnYfGvCR3fv2B/view?usp=sharing
 
 from functools import total_ordering
