@@ -129,7 +129,7 @@ class BetterBinarySearchTree(BinarySearchTree[K, V]):
             return
         mid = (lo + hi) // 2
         k, v = arr[mid]
-        # Use the BST’s recursive insertion; do not construct nodes directly to KEEP within the scaffold
+        # herere I use BST’s recursive insertion
         self[k] = v
         self._rebuild_from_sorted(arr, lo, mid - 1)
         self._rebuild_from_sorted(arr, mid + 1, hi)

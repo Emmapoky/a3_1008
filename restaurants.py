@@ -107,7 +107,7 @@ class FoodFlight:
 
     def add_restaurant(self, restaurant: Restaurant) -> None:
         """
-        :complexity: Best = Worst = O(L + log R), where L is the length of the restaurant name 
+        :complexity: Best & Worst are both O(L + log R), where L is the length of the restaurant name 
         and R is the number of restaurants stored.
         We hash the name once (cost depends on L and insert the restaurant into the BST by block; 
         in a well‑shaped tree this is O(logR), while in a very skewed tree it can be O(R).
